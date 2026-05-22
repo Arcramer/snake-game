@@ -38,49 +38,162 @@
 
     #score-board span { color: #e0e0e0; font-weight: 600; }
 
+    #main-area {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
     canvas {
       background: #1a1a22;
       border: 2px solid #2a2a36;
       border-radius: 8px;
       display: block;
+      flex-shrink: 0;
     }
 
+    /* Leaderboard panel */
+    #leaderboard {
+      width: 160px;
+      background: #1a1a22;
+      border: 2px solid #2a2a36;
+      border-radius: 8px;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #leaderboard h3 {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #4ade80;
+      text-align: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2a2a36;
+    }
+
+    #leaderboard ol {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #leaderboard li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+    }
+
+    #leaderboard li .rank {
+      width: 16px;
+      text-align: right;
+      color: #555;
+      font-size: 0.72rem;
+      flex-shrink: 0;
+    }
+
+    #leaderboard li.rank-1 .rank { color: #fbbf24; }
+    #leaderboard li.rank-2 .rank { color: #94a3b8; }
+    #leaderboard li.rank-3 .rank { color: #b45309; }
+
+    #leaderboard li .lb-name {
+      flex: 1;
+      color: #ccc;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #leaderboard li .lb-score {
+      color: #4ade80;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #leaderboard li.highlight .lb-name,
+    #leaderboard li.highlight .lb-score { color: #fff; }
+    #leaderboard li.highlight { background: #22c55e18; border-radius: 4px; padding: 1px 3px; margin: 0 -3px; }
+
+    #leaderboard .empty {
+      color: #444;
+      font-size: 0.78rem;
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    /* Game over overlay */
     #overlay {
       position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
+      gap: 12px;
+      background: rgba(15,15,19,0.82);
+      border-radius: 6px;
       pointer-events: none;
     }
 
     #overlay.hidden { display: none; }
 
     #overlay h2 {
-      font-size: 2.5rem;
+      font-size: 2.2rem;
       font-weight: 700;
       color: #f87171;
     }
 
-    #overlay p {
-      color: #888;
-      font-size: 0.95rem;
-    }
-
     #overlay .final-score {
-      font-size: 1.1rem;
-      color: #e0e0e0;
+      font-size: 1rem;
+      color: #aaa;
     }
 
-    #restart-btn {
+    #overlay .final-score strong { color: #e0e0e0; }
+
+    /* Name entry */
+    #name-entry {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: all;
+    }
+
+    #name-entry label {
+      font-size: 0.8rem;
+      color: #888;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    #name-input {
+      background: #0f0f13;
+      border: 2px solid #2a2a36;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 1rem;
+      font-family: inherit;
+      padding: 6px 12px;
+      text-align: center;
+      width: 120px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    #name-input:focus { border-color: #4ade80; }
+
+    #save-btn {
       pointer-events: all;
       background: #4ade80;
       color: #0f0f13;
       border: none;
-      padding: 10px 28px;
+      padding: 8px 24px;
       border-radius: 6px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -88,7 +201,31 @@
       transition: background 0.15s;
     }
 
-    #restart-btn:hover { background: #86efac; }
+    #save-btn:hover { background: #86efac; }
+
+    #restart-btn {
+      pointer-events: all;
+      background: transparent;
+      color: #4ade80;
+      border: 2px solid #4ade80;
+      padding: 8px 24px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    #restart-btn:hover { background: #4ade80; color: #0f0f13; }
+
+    #overlay .key-hint {
+      font-size: 0.75rem;
+      color: #444;
+      letter-spacing: 0.05em;
+      pointer-events: none;
+    }
 
     #hint {
       font-size: 0.8rem;
@@ -107,13 +244,25 @@
   Best: <span id="best">0</span>
 </div>
 
-<div style="position: relative;">
-  <canvas id="canvas" width="400" height="400"></canvas>
-  <div id="overlay" class="hidden">
-    <h2>Game Over</h2>
-    <p class="final-score">Score: <span id="final-score">0</span></p>
-    <button id="restart-btn">Restart</button>
-    <p>or press Space / Enter</p>
+<div id="main-area">
+  <div style="position: relative;">
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <div id="overlay" class="hidden">
+      <h2>Game Over</h2>
+      <p class="final-score">Score: <strong><span id="final-score">0</span></strong></p>
+      <div id="name-entry">
+        <label for="name-input">Your name</label>
+        <input id="name-input" type="text" maxlength="12" placeholder="AAA" spellcheck="false" autocomplete="off">
+        <button id="save-btn">Save Score</button>
+      </div>
+      <button id="restart-btn">Play Again</button>
+      <p class="key-hint">Space / Enter to restart</p>
+    </div>
+  </div>
+
+  <div id="leaderboard">
+    <h3>Best Scores</h3>
+    <ol id="lb-list"></ol>
   </div>
 </div>
 
@@ -126,10 +275,15 @@
   const scoreEl = document.getElementById('score');
   const bestEl = document.getElementById('best');
   const finalScoreEl = document.getElementById('final-score');
+  const nameInput = document.getElementById('name-input');
+  const saveBtn = document.getElementById('save-btn');
+  const restartBtn = document.getElementById('restart-btn');
+  const lbList = document.getElementById('lb-list');
 
   const GRID = 20;
   const COLS = canvas.width / GRID;
   const ROWS = canvas.height / GRID;
+  const MAX_ENTRIES = 8;
 
   const COLORS = {
     head: '#4ade80',
@@ -141,9 +295,57 @@
   };
 
   let snake, dir, nextDir, food, score, best, intervalId, alive;
+  let lastSavedRank = -1;
 
-  best = parseInt(localStorage.getItem('snake-best') || '0');
-  bestEl.textContent = best;
+  function loadScores() {
+    try { return JSON.parse(localStorage.getItem('snake-scores') || '[]'); }
+    catch { return []; }
+  }
+
+  function saveScores(scores) {
+    localStorage.setItem('snake-scores', JSON.stringify(scores));
+  }
+
+  function addScore(name, pts) {
+    const scores = loadScores();
+    scores.push({ name: name.trim() || 'AAA', score: pts });
+    scores.sort((a, b) => b.score - a.score);
+    const trimmed = scores.slice(0, MAX_ENTRIES);
+    saveScores(trimmed);
+    return trimmed.findIndex(e => e.name === name.trim() && e.score === pts);
+  }
+
+  function renderLeaderboard(highlightRank = -1) {
+    const scores = loadScores();
+    lbList.innerHTML = '';
+
+    if (scores.length === 0) {
+      lbList.innerHTML = '<p class="empty">No scores yet</p>';
+      return;
+    }
+
+    scores.forEach((entry, i) => {
+      const li = document.createElement('li');
+      li.classList.add(`rank-${i + 1}`);
+      if (i === highlightRank) li.classList.add('highlight');
+      li.innerHTML = `
+        <span class="rank">${i + 1}.</span>
+        <span class="lb-name">${escHtml(entry.name)}</span>
+        <span class="lb-score">${entry.score}</span>
+      `;
+      lbList.appendChild(li);
+    });
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function updateBest() {
+    const scores = loadScores();
+    best = scores.length ? scores[0].score : 0;
+    bestEl.textContent = best;
+  }
 
   function init() {
     snake = [
@@ -155,15 +357,17 @@
     nextDir = { x: 1, y: 0 };
     score = 0;
     alive = true;
+    lastSavedRank = -1;
     scoreEl.textContent = 0;
     overlay.classList.add('hidden');
+    nameInput.value = localStorage.getItem('snake-last-name') || '';
     placeFood();
-    clearInterval(intervalId);
+    clearTimeout(intervalId);
     scheduleNext();
+    renderLeaderboard();
   }
 
   function speed() {
-    // Start at 150ms, decrease by 5ms per 3 points, floor at 60ms
     return Math.max(60, 150 - Math.floor(score / 3) * 5);
   }
 
@@ -190,26 +394,14 @@
     dir = nextDir;
     const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
 
-    // Wall collision
-    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-      return gameOver();
-    }
-
-    // Self collision
-    if (snake.some(s => s.x === head.x && s.y === head.y)) {
-      return gameOver();
-    }
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) return gameOver();
+    if (snake.some(s => s.x === head.x && s.y === head.y)) return gameOver();
 
     snake.unshift(head);
 
     if (head.x === food.x && head.y === food.y) {
       score++;
       scoreEl.textContent = score;
-      if (score > best) {
-        best = score;
-        bestEl.textContent = best;
-        localStorage.setItem('snake-best', best);
-      }
       placeFood();
     } else {
       snake.pop();
@@ -220,95 +412,86 @@
 
   function gameOver() {
     alive = false;
-    clearInterval(intervalId);
+    clearTimeout(intervalId);
     finalScoreEl.textContent = score;
     overlay.classList.remove('hidden');
     drawDead();
+
+    if (score > 0) {
+      nameInput.style.display = '';
+      saveBtn.style.display = '';
+      document.getElementById('name-entry').querySelector('label').style.display = '';
+      setTimeout(() => nameInput.focus(), 50);
+    } else {
+      nameInput.style.display = 'none';
+      saveBtn.style.display = 'none';
+      document.getElementById('name-entry').querySelector('label').style.display = 'none';
+    }
+  }
+
+  function handleSave() {
+    if (score === 0) return;
+    const name = nameInput.value.trim() || 'AAA';
+    localStorage.setItem('snake-last-name', name);
+    lastSavedRank = addScore(name, score);
+    updateBest();
+    renderLeaderboard(lastSavedRank);
+    nameInput.style.display = 'none';
+    saveBtn.style.display = 'none';
+    document.getElementById('name-entry').querySelector('label').style.display = 'none';
   }
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Subtle grid
     ctx.strokeStyle = COLORS.grid;
     ctx.lineWidth = 0.5;
     for (let x = 0; x <= COLS; x++) {
-      ctx.beginPath();
-      ctx.moveTo(x * GRID, 0);
-      ctx.lineTo(x * GRID, canvas.height);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x * GRID, 0); ctx.lineTo(x * GRID, canvas.height); ctx.stroke();
     }
     for (let y = 0; y <= ROWS; y++) {
-      ctx.beginPath();
-      ctx.moveTo(0, y * GRID);
-      ctx.lineTo(canvas.width, y * GRID);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, y * GRID); ctx.lineTo(canvas.width, y * GRID); ctx.stroke();
     }
 
-    // Food glow
     ctx.fillStyle = COLORS.foodGlow;
     ctx.beginPath();
-    ctx.arc(
-      food.x * GRID + GRID / 2,
-      food.y * GRID + GRID / 2,
-      GRID, 0, Math.PI * 2
-    );
+    ctx.arc(food.x * GRID + GRID / 2, food.y * GRID + GRID / 2, GRID, 0, Math.PI * 2);
     ctx.fill();
 
-    // Food
     ctx.fillStyle = COLORS.food;
     ctx.beginPath();
-    ctx.roundRect(
-      food.x * GRID + 2, food.y * GRID + 2,
-      GRID - 4, GRID - 4, 4
-    );
+    ctx.roundRect(food.x * GRID + 2, food.y * GRID + 2, GRID - 4, GRID - 4, 4);
     ctx.fill();
 
-    // Snake body (tail to neck, progressively dimmer)
     for (let i = snake.length - 1; i >= 1; i--) {
       const t = i / snake.length;
       ctx.fillStyle = i === 1 ? COLORS.body : lerpColor(COLORS.bodyDim, COLORS.body, 1 - t);
       ctx.beginPath();
-      ctx.roundRect(
-        snake[i].x * GRID + 1, snake[i].y * GRID + 1,
-        GRID - 2, GRID - 2, 3
-      );
+      ctx.roundRect(snake[i].x * GRID + 1, snake[i].y * GRID + 1, GRID - 2, GRID - 2, 3);
       ctx.fill();
     }
 
-    // Snake head
     ctx.fillStyle = COLORS.head;
     ctx.beginPath();
-    ctx.roundRect(
-      snake[0].x * GRID + 1, snake[0].y * GRID + 1,
-      GRID - 2, GRID - 2, 5
-    );
+    ctx.roundRect(snake[0].x * GRID + 1, snake[0].y * GRID + 1, GRID - 2, GRID - 2, 5);
     ctx.fill();
 
-    // Eyes
     drawEyes(snake[0], dir);
   }
 
   function drawDead() {
-    // Flash snake red
     for (let i = 0; i < snake.length; i++) {
       ctx.fillStyle = i === 0 ? '#f87171' : '#7f1d1d';
       ctx.beginPath();
-      ctx.roundRect(
-        snake[i].x * GRID + 1, snake[i].y * GRID + 1,
-        GRID - 2, GRID - 2, i === 0 ? 5 : 3
-      );
+      ctx.roundRect(snake[i].x * GRID + 1, snake[i].y * GRID + 1, GRID - 2, GRID - 2, i === 0 ? 5 : 3);
       ctx.fill();
     }
   }
 
   function drawEyes(head, d) {
-    // Offset eyes perpendicular to direction
     const cx = head.x * GRID + GRID / 2;
     const cy = head.y * GRID + GRID / 2;
-    const r = 2;
-    const offset = 4;
-
+    const r = 2, offset = 4;
     let e1, e2;
     if (d.x !== 0) {
       e1 = { x: cx + d.x * 3, y: cy - offset };
@@ -317,27 +500,17 @@
       e1 = { x: cx - offset, y: cy + d.y * 3 };
       e2 = { x: cx + offset, y: cy + d.y * 3 };
     }
-
     ctx.fillStyle = '#0f0f13';
-    [e1, e2].forEach(e => {
-      ctx.beginPath();
-      ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    [e1, e2].forEach(e => { ctx.beginPath(); ctx.arc(e.x, e.y, r, 0, Math.PI * 2); ctx.fill(); });
   }
 
   function lerpColor(a, b, t) {
-    const ah = parseInt(a.slice(1), 16);
-    const bh = parseInt(b.slice(1), 16);
+    const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
     const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
     const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
-    const rr = Math.round(ar + (br - ar) * t);
-    const rg = Math.round(ag + (bg - ag) * t);
-    const rb = Math.round(ab + (bb - ab) * t);
-    return `rgb(${rr},${rg},${rb})`;
+    return `rgb(${Math.round(ar+(br-ar)*t)},${Math.round(ag+(bg-ag)*t)},${Math.round(ab+(bb-ab)*t)})`;
   }
 
-  // Controls
   const DIRS = {
     ArrowUp:    { x: 0,  y: -1 },
     ArrowDown:  { x: 0,  y:  1 },
@@ -349,14 +522,23 @@
     if (e.key in DIRS) {
       e.preventDefault();
       const d = DIRS[e.key];
-      // Prevent reversing
       if (d.x !== -dir.x || d.y !== -dir.y) nextDir = d;
     }
-    if ((e.key === ' ' || e.key === 'Enter') && !alive) init();
+    if ((e.key === ' ' || e.key === 'Enter') && !alive) {
+      if (document.activeElement === nameInput) return;
+      init();
+    }
   });
 
-  document.getElementById('restart-btn').addEventListener('click', init);
+  nameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { handleSave(); e.preventDefault(); }
+  });
 
+  saveBtn.addEventListener('click', handleSave);
+  restartBtn.addEventListener('click', init);
+
+  updateBest();
+  renderLeaderboard();
   init();
   draw();
 </script>
