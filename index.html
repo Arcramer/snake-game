@@ -289,13 +289,31 @@
     head: '#4ade80',
     body: '#22c55e',
     bodyDim: '#166534',
-    food: '#f87171',
-    foodGlow: 'rgba(248,113,113,0.3)',
     grid: 'rgba(255,255,255,0.02)',
   };
 
-  let snake, dir, nextDir, food, score, best, intervalId, alive;
+  const FOOD_COLORS = [
+    '#f87171', // red
+    '#fb923c', // orange
+    '#fbbf24', // amber
+    '#a3e635', // lime
+    '#34d399', // emerald
+    '#38bdf8', // sky
+    '#60a5fa', // blue
+    '#a78bfa', // violet
+    '#e879f9', // fuchsia
+    '#f472b6', // pink
+  ];
+
+  function hexToRgb(hex) {
+    const h = parseInt(hex.slice(1), 16);
+    return { r: (h >> 16) & 0xff, g: (h >> 8) & 0xff, b: h & 0xff };
+  }
+
+  let snake, dir, nextDir, food, foodColor, score, best, intervalId, alive;
   let lastSavedRank = -1;
+  let pulseT = 0;
+  let lastFrameTime = null;
 
   function loadScores() {
     try { return JSON.parse(localStorage.getItem('snake-scores') || '[]'); }
@@ -388,6 +406,12 @@
       };
     } while (occupied.has(`${pos.x},${pos.y}`));
     food = pos;
+    pulseT = 0;
+    // Pick a new color, never repeating the current one
+    let next;
+    do { next = FOOD_COLORS[Math.floor(Math.random() * FOOD_COLORS.length)]; }
+    while (next === foodColor && FOOD_COLORS.length > 1);
+    foodColor = next;
   }
 
   function tick() {
@@ -407,7 +431,6 @@
       snake.pop();
     }
 
-    draw();
   }
 
   function gameOver() {
@@ -415,7 +438,6 @@
     clearTimeout(intervalId);
     finalScoreEl.textContent = score;
     overlay.classList.remove('hidden');
-    drawDead();
 
     if (score > 0) {
       nameInput.style.display = '';
@@ -441,9 +463,20 @@
     document.getElementById('name-entry').querySelector('label').style.display = 'none';
   }
 
+  function animLoop(timestamp) {
+    if (lastFrameTime !== null) {
+      const dt = timestamp - lastFrameTime;
+      pulseT = (pulseT + dt / 1000) % 1;
+    }
+    lastFrameTime = timestamp;
+    draw();
+    requestAnimationFrame(animLoop);
+  }
+
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Grid
     ctx.strokeStyle = COLORS.grid;
     ctx.lineWidth = 0.5;
     for (let x = 0; x <= COLS; x++) {
@@ -453,38 +486,53 @@
       ctx.beginPath(); ctx.moveTo(0, y * GRID); ctx.lineTo(canvas.width, y * GRID); ctx.stroke();
     }
 
-    ctx.fillStyle = COLORS.foodGlow;
+    // Food
+    const fx = food.x * GRID + GRID / 2;
+    const fy = food.y * GRID + GRID / 2;
+    const rgb = hexToRgb(foodColor);
+
+    // Static inner glow
+    ctx.fillStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},0.12)`;
     ctx.beginPath();
-    ctx.arc(food.x * GRID + GRID / 2, food.y * GRID + GRID / 2, GRID, 0, Math.PI * 2);
+    ctx.arc(fx, fy, GRID * 0.9, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = COLORS.food;
+    // Outward pulse ring — expands from near the food to ~2.2x GRID, fades to 0
+    const pulseR = GRID * 0.6 + pulseT * GRID * 1.6;
+    const pulseAlpha = 0.6 * (1 - pulseT);
+    ctx.strokeStyle = `rgba(${rgb.r},${rgb.g},${rgb.b},${pulseAlpha})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(fx, fy, pulseR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Food square
+    ctx.fillStyle = foodColor;
     ctx.beginPath();
     ctx.roundRect(food.x * GRID + 2, food.y * GRID + 2, GRID - 4, GRID - 4, 4);
     ctx.fill();
 
-    for (let i = snake.length - 1; i >= 1; i--) {
-      const t = i / snake.length;
-      ctx.fillStyle = i === 1 ? COLORS.body : lerpColor(COLORS.bodyDim, COLORS.body, 1 - t);
+    // Snake
+    if (!alive) {
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = i === 0 ? '#f87171' : '#7f1d1d';
+        ctx.beginPath();
+        ctx.roundRect(snake[i].x * GRID + 1, snake[i].y * GRID + 1, GRID - 2, GRID - 2, i === 0 ? 5 : 3);
+        ctx.fill();
+      }
+    } else {
+      for (let i = snake.length - 1; i >= 1; i--) {
+        const t = i / snake.length;
+        ctx.fillStyle = i === 1 ? COLORS.body : lerpColor(COLORS.bodyDim, COLORS.body, 1 - t);
+        ctx.beginPath();
+        ctx.roundRect(snake[i].x * GRID + 1, snake[i].y * GRID + 1, GRID - 2, GRID - 2, 3);
+        ctx.fill();
+      }
+      ctx.fillStyle = COLORS.head;
       ctx.beginPath();
-      ctx.roundRect(snake[i].x * GRID + 1, snake[i].y * GRID + 1, GRID - 2, GRID - 2, 3);
+      ctx.roundRect(snake[0].x * GRID + 1, snake[0].y * GRID + 1, GRID - 2, GRID - 2, 5);
       ctx.fill();
-    }
-
-    ctx.fillStyle = COLORS.head;
-    ctx.beginPath();
-    ctx.roundRect(snake[0].x * GRID + 1, snake[0].y * GRID + 1, GRID - 2, GRID - 2, 5);
-    ctx.fill();
-
-    drawEyes(snake[0], dir);
-  }
-
-  function drawDead() {
-    for (let i = 0; i < snake.length; i++) {
-      ctx.fillStyle = i === 0 ? '#f87171' : '#7f1d1d';
-      ctx.beginPath();
-      ctx.roundRect(snake[i].x * GRID + 1, snake[i].y * GRID + 1, GRID - 2, GRID - 2, i === 0 ? 5 : 3);
-      ctx.fill();
+      drawEyes(snake[0], dir);
     }
   }
 
@@ -540,7 +588,7 @@
   updateBest();
   renderLeaderboard();
   init();
-  draw();
+  requestAnimationFrame(animLoop);
 </script>
 </body>
 </html>
